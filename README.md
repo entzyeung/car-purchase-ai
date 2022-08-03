@@ -6,3 +6,5 @@ I also trained 2 other AI models - Xgboost, and Lightboost, with optimization by
 In this webapp, I employed 2 simpler models which are Logistic Regression and Gradient Boost.
 
 The LR model is straight from default; while the GB model is optimised as GradientBoostingClassifier(n_estimators=100, max_depth=4).
+
+Remarks: as the data is from the 90s, that is 30 years ago. You may find the numbers doesn't make too much sense in the nowaday context.
