@@ -1,4 +1,6 @@
 # Readme
+[https://entzyeung.github.io/car-purchase-ai/index.html](https://entzyeung.github.io/car-purchase-ai/index.html)
+
 I built this sample page mainly with python, html, pyscript, and bootstrap.
 
 I also trained 2 other AI models - Xgboost, and Lightboost, with optimization by tunning number of iterations, and max depth, but as at the time of deployment, pyscirpt seems still not supporting Xgboost and LightGBM libraries, so I am forced to drop them. 
