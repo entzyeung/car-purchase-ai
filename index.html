@@ -51,6 +51,8 @@
         <p>AI recommendations based on the Auto's physical qualifications.</p>
     </div>
 
+    <img src="images/main.png" style="margin: 20px auto; width: 100%;" class="img-fluid" alt="Car Purchase AI Main Image" onerror="console.log('Failed to load main.png')">
+
     <div style="width: 75%; margin: 30px auto;" id="trainModel">
         <h2>① Train your model</h2>
         <br>
@@ -181,7 +183,7 @@ from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import GradientBoostingClassifier
 from sklearn.metrics import accuracy_score, f1_score
 from pyodide.http import open_url
-from js import document
+from js import document, console
 import asyncio
 
 trained_model = None
@@ -203,7 +205,9 @@ def upSampling(data):
 
 async def datasetPreProcessing():
     try:
+        console.log("Fetching data...")
         csv_url_content = open_url("https://raw.githubusercontent.com/entzyeung/car-purchase-ai/main/car.csv")
+        console.log("Data fetched, reading CSV...")
         data = pd.read_csv(csv_url_content)
         pyscript.write("headingText", "Pre-Processing the Dataset...")
         
@@ -216,8 +220,10 @@ async def datasetPreProcessing():
         data['safety'] = data['safety'].map({'low':0, 'med':1, 'high':2})
         data['score'] = data['score'].map({'unacc':0, 'acc':1, 'good':2, 'vgood':3})
         
+        console.log("Data preprocessed, upsampling...")
         return upSampling(data)
     except Exception as e:
+        console.log(f"Error in preprocessing: {str(e)}")
         pyscript.write("headingText", f"Error in preprocessing: {str(e)}")
         raise
 
@@ -232,19 +238,23 @@ def model_selection():
 
 async def classifier(model, X_train, X_test, y_train, y_test):
     try:
+        console.log("Training model...")
         clf = model
         clf.fit(X_train, y_train)
         y_pred = clf.predict(X_test)
         acc_score = accuracy_score(y_test, y_pred)
         f1Score = f1_score(y_test, y_pred, average='weighted')
+        console.log("Model trained!")
         return acc_score, clf, f1Score
     except Exception as e:
+        console.log(f"Error in training: {str(e)}")
         pyscript.write("headingText", f"Error in training: {str(e)}")
         raise
 
 async def trainModel(e=None):
     global trained_model
     try:
+        console.log("trainModel function called!")
         processed_data = await datasetPreProcessing()
         test_split = float(document.getElementById("test_split").value)
         
@@ -277,10 +287,12 @@ async def trainModel(e=None):
         
         pyscript.write("headingText", "Model Training Completed.")
     except Exception as e:
+        console.log(f"Error in trainModel: {str(e)}")
         pyscript.write("headingText", f"Training failed: {str(e)}")
 
 async def testModel(e=None):
     try:
+        console.log("testModel function called!")
         if not trained_model:
             pyscript.write("resultText", "Please train the model first!")
             return
@@ -305,10 +317,18 @@ async def testModel(e=None):
         
         pyscript.write("resultText", f"AI: {condition}")
     except Exception as e:
+        console.log(f"Error in testModel: {str(e)}")
         pyscript.write("resultText", f"Error in prediction: {str(e)}")
 
-document.getElementById("submitBtn").addEventListener("click", lambda e: asyncio.ensure_future(testModel(e)))
-document.getElementById("trainModelBtn").addEventListener("click", lambda e: asyncio.ensure_future(trainModel(e)))
+# Add event listeners with debug logging
+console.log("Setting up event listeners...")
+train_btn = document.getElementById("trainModelBtn")
+train_btn.addEventListener("click", lambda e: asyncio.ensure_future(trainModel(e)))
+console.log("Train button listener set up")
+
+submit_btn = document.getElementById("submitBtn")
+submit_btn.addEventListener("click", lambda e: asyncio.ensure_future(testModel(e)))
+console.log("Submit button listener set up")
     </py-script>
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
