@@ -185,10 +185,28 @@ from sklearn.metrics import accuracy_score, f1_score
 from pyodide.http import open_url
 from js import document, console
 import asyncio
+import io
 
 trained_model = None
 
+# Fallback dummy data in case the fetch fails
+FALLBACK_DATA = """
+buying,maint,doors,people,luggage,safety,score
+vhigh,vhigh,2,2,small,low,unacc
+vhigh,vhigh,2,2,small,med,unacc
+vhigh,vhigh,2,2,small,high,unacc
+vhigh,vhigh,2,2,med,low,unacc
+vhigh,vhigh,2,2,med,med,unacc
+vhigh,vhigh,2,2,med,high,unacc
+vhigh,vhigh,2,2,big,low,unacc
+vhigh,vhigh,2,2,big,med,unacc
+vhigh,vhigh,2,2,big,high,unacc
+vhigh,vhigh,2,4,small,low,unacc
+"""
+# This is a small subset of the car.csv data for testing
+
 def upSampling(data):
+    console.log("Starting upSampling...")
     from sklearn.utils import resample
     df_majority = data[data['score'] == 0]
     samples_in_majority = df_majority.shape[0]
@@ -201,16 +219,26 @@ def upSampling(data):
     df_minority_upsampled_2 = resample(df_minority_2, replace=True, n_samples=samples_in_majority, random_state=42)
     df_minority_upsampled_3 = resample(df_minority_3, replace=True, n_samples=samples_in_majority, random_state=42)
     
+    console.log("upSampling completed")
     return pd.concat([df_minority_upsampled_1, df_minority_upsampled_2, df_minority_upsampled_3, df_majority])
 
 async def datasetPreProcessing():
     try:
-        console.log("Fetching data...")
+        console.log("Attempting to fetch data from URL...")
         csv_url_content = open_url("https://raw.githubusercontent.com/entzyeung/car-purchase-ai/main/car.csv")
-        console.log("Data fetched, reading CSV...")
+        console.log("Data fetched successfully, reading CSV...")
         data = pd.read_csv(csv_url_content)
+        console.log("CSV read successfully")
+    except Exception as e:
+        console.log(f"Failed to fetch data: {str(e)}")
+        pyscript.write("headingText", f"Failed to fetch data: {str(e)}. Using fallback data...")
+        console.log("Falling back to dummy data...")
+        data = pd.read_csv(io.StringIO(FALLBACK_DATA))
+        console.log("Fallback data loaded")
+
+    try:
+        console.log("Starting preprocessing...")
         pyscript.write("headingText", "Pre-Processing the Dataset...")
-        
         data = data.drop_duplicates()
         data['buying'] = data['buying'].map({'low':0, 'med':1, 'high':2, 'vhigh':3})
         data['maint'] = data['maint'].map({'low':0, 'med':1, 'high':2, 'vhigh':3})
@@ -220,14 +248,17 @@ async def datasetPreProcessing():
         data['safety'] = data['safety'].map({'low':0, 'med':1, 'high':2})
         data['score'] = data['score'].map({'unacc':0, 'acc':1, 'good':2, 'vgood':3})
         
-        console.log("Data preprocessed, upsampling...")
-        return upSampling(data)
+        console.log("Preprocessing completed, starting upsampling...")
+        result = upSampling(data)
+        console.log("Upsampling completed")
+        return result
     except Exception as e:
         console.log(f"Error in preprocessing: {str(e)}")
         pyscript.write("headingText", f"Error in preprocessing: {str(e)}")
         raise
 
 def model_selection():
+    console.log("Selecting model...")
     selectedModel = document.querySelector('input[name="modelSelection"]:checked').value
     if selectedModel == "lr":
         document.getElementById("selectedModelContentBox").innerText = "Logistic Regression"
@@ -238,13 +269,14 @@ def model_selection():
 
 async def classifier(model, X_train, X_test, y_train, y_test):
     try:
-        console.log("Training model...")
+        console.log("Starting model training...")
         clf = model
         clf.fit(X_train, y_train)
+        console.log("Model fitted, making predictions...")
         y_pred = clf.predict(X_test)
         acc_score = accuracy_score(y_test, y_pred)
         f1Score = f1_score(y_test, y_pred, average='weighted')
-        console.log("Model trained!")
+        console.log("Training completed, scores calculated")
         return acc_score, clf, f1Score
     except Exception as e:
         console.log(f"Error in training: {str(e)}")
@@ -256,36 +288,50 @@ async def trainModel(e=None):
     try:
         console.log("trainModel function called!")
         processed_data = await datasetPreProcessing()
+        console.log("Data preprocessing completed")
+        
         test_split = float(document.getElementById("test_split").value)
+        console.log(f"Test split value: {test_split}")
         
         if test_split > 0.5 or test_split < 0.1:
+            console.log("Test split out of range")
             pyscript.write("headingText", "Please enter test size between 0.1 to 0.5...")
             return
         
         document.getElementById("testSplitContentBox").innerText = test_split
+        console.log("Test split updated in UI")
+        
         X = processed_data[['buying', 'maint', 'doors', 'people', 'luggage', 'safety']]
         y = processed_data['score']
+        console.log("Data split into X and y")
         
         X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_split, random_state=42)
+        console.log("Data split into train and test sets")
+        
         model = model_selection()
+        console.log("Model selected")
         
         pyscript.write("headingText", "Model Training Started...")
         await asyncio.sleep(0.1)  # Allow UI update
         
         acc_score, trained_model, f1Score = await classifier(model, X_train, X_test, y_train, y_test)
+        console.log(f"Training completed: Accuracy={acc_score}, F1={f1Score}")
         
         document.getElementById("accuracyContentBox").innerText = f"{round(acc_score*100, 2)}%"
         document.getElementById("f1ContentBox").innerText = f"{round(f1Score*100, 2)}%"
+        console.log("UI updated with scores")
         
         submit_btn = document.getElementById("submitBtn")
         submit_btn.classList.remove("disabled")
         submit_btn.disabled = False
+        console.log("Submit button enabled")
         
         train_btn = document.getElementById("trainModelBtn")
         train_btn.classList.remove("disabled")
         train_btn.disabled = False
         
         pyscript.write("headingText", "Model Training Completed.")
+        console.log("Training process fully completed")
     except Exception as e:
         console.log(f"Error in trainModel: {str(e)}")
         pyscript.write("headingText", f"Training failed: {str(e)}")
@@ -294,6 +340,7 @@ async def testModel(e=None):
     try:
         console.log("testModel function called!")
         if not trained_model:
+            console.log("No trained model available")
             pyscript.write("resultText", "Please train the model first!")
             return
             
@@ -306,7 +353,10 @@ async def testModel(e=None):
         
         arr = np.array([buying_price, maintenance_price, doors, persons, luggage, safety]).astype('float32')
         arr = np.expand_dims(arr, axis=0)
+        console.log("Input array prepared for prediction")
+        
         result = trained_model.predict(arr)
+        console.log(f"Prediction result: {result}")
         
         condition = {
             0: "The deal is unacceptable",
@@ -316,6 +366,7 @@ async def testModel(e=None):
         }.get(result[0], "Unknown result")
         
         pyscript.write("resultText", f"AI: {condition}")
+        console.log("Prediction displayed")
     except Exception as e:
         console.log(f"Error in testModel: {str(e)}")
         pyscript.write("resultText", f"Error in prediction: {str(e)}")
