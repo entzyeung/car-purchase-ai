@@ -6,7 +6,7 @@
 
 This webapp helps users evaluate the quality of a used car based on its price, maintenance costs, and physical features. Using machine learning models, it rates a car as **Unacceptable**, **Acceptable**, **Good**, or **Very Good**, assisting users in making smarter buying decisions. The app is built with Python, HTML, PyScript, and Bootstrap, providing an interactive interface to train models and get AI recommendations.
 
-I originally built the machine learning models in 2018 and developed the webapp in 2020, converting it from a Flask-based front-end and back-end to PyScript. At that time, PyScript was still experimental and not yet officially published, making this project an early exploration of running Python in the browser. Additionally, models like XGBoost were a big hit back then, reflecting the data science trends of the era. I’m now revisiting and fixing this old, broken app in 2025 to preserve this piece of my data science journey—I don’t want to let it go to waste and want to keep it as a historical milestone of my growth as a data scientist.
+I originally built the machine learning models in 2020 and developed the webapp, then converted it from a Flask-based front-end and back-end to PyScript in 2022. At that time, PyScript was still experimental and not yet officially published, making this project an early exploration of running Python in the browser. Additionally, models like XGBoost were a big hit back then, reflecting the data science trends of the era. I’m now revisiting and fixing this old, broken app in 2025 to preserve this piece of my data science journey—I don’t want to let it go to waste and want to keep it as a historical milestone of my growth as a data scientist.
 
 ## What Does This App Do?
 
@@ -70,10 +70,10 @@ A brief explanation accompanies the rating, highlighting factors like cost, safe
   - **Gradient Boosting**: Optimized with `GradientBoostingClassifier(n_estimators=100, max_depth=4)`.
 
 - **Other Models Explored**:
-  I trained two additional models—XGBoost and LightGBM—in 2018, optimizing them by tuning the number of iterations and max depth. However, at the time of deployment in 2020, PyScript did not support XGBoost or LightGBM libraries, so I had to drop them.
+  I trained two additional models—XGBoost and LightGBM—in 2020, optimizing them by tuning the number of iterations and max depth. However, at the time of deployment in 2022, PyScript did not support XGBoost or LightGBM libraries, so I had to drop them.
 
 - **Development Journey**:
-  I built the machine learning models in 2018 and developed the webapp in 2020, initially using Flask for the front-end and back-end. In 2020, I converted it to PyScript, which was still experimental and not yet officially published, making this project a pioneering effort in browser-based Python applications. At that time, XGBoost was a popular model in the data science community, reflecting the trends of the era. I’m now updating this app in 2025 to fix issues and preserve this piece of my data science history, as I don’t want to let this early work go to waste.
+  I built the machine learning models in 2020 and developed the webapp in 2022, initially using Flask for the front-end and back-end. In 2022, I converted it to PyScript, which was still experimental and not yet officially published, making this project a pioneering effort in browser-based Python applications. At that time, XGBoost was a popular model in the data science community, reflecting the trends of the era. I’m now updating this app in 2025 to fix issues and preserve this piece of my data science history, as I don’t want to let this early work go to waste.
 
 ## Remarks
 
