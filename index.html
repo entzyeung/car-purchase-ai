@@ -148,8 +148,8 @@
                 </div>
                 <div class="col-lg-4">
                     <div class="form-group">
-                        <label for="luggage">Luggage Space</label>
-                        <select class="form-control" id="luggage">
+                        <label for="lug_boot">Luggage Space</label>
+                        <select class="form-control" id="lug_boot">
                             <option value="0">Small (<150L)</option>
                             <option value="1">Medium (~250L)</option>
                             <option value="2" selected>Large (~450L)</option>
@@ -210,8 +210,8 @@
                 data['buying'] = data['buying'].map({'low':0, 'med':1, 'high':2, 'vhigh':3})
                 data['maint'] = data['maint'].map({'low':0, 'med':1, 'high':2, 'vhigh':3})
                 data['doors'] = data['doors'].map({'2':0, '3':1, '4':2, '5more':3})
-                data['people'] = data['people'].map({'2':0, '4':1, 'more':2})
-                data['luggage'] = data['luggage'].map({'small':0, 'med':1, 'big':2})
+                data['persons'] = data['persons'].map({'2':0, '4':1, 'more':2})
+                data['lug_boot'] = data['lug_boot'].map({'small':0, 'med':1, 'big':2})
                 data['safety'] = data['safety'].map({'low':0, 'med':1, 'high':2})
                 data['score'] = data['score'].map({'unacc':0, 'acc':1, 'good':2, 'vgood':3})
                 
@@ -295,7 +295,7 @@
                 document.getElementById("testSplitContentBox").innerText = test_split
                 console.log("Test split updated in UI")
                 
-                X = processed_data[['buying', 'maint', 'doors', 'people', 'luggage', 'safety']]
+                X = processed_data[['buying', 'maint', 'doors', 'persons', 'lug_boot', 'safety']]
                 y = processed_data['score']
                 console.log("Data split into X and y")
                 
@@ -343,15 +343,15 @@
                 maintenance_price = int(document.getElementById("maintenance_price").value)
                 doors = int(document.getElementById("doors").value)
                 persons = int(document.getElementById("persons").value)
-                luggage = int(document.getElementById("luggage").value)
+                lug_boot = int(document.getElementById("lug_boot").value)
                 safety = int(document.getElementById("safety").value)
                 
                 input_data = pd.DataFrame({
                     'buying': [buying_price],
                     'maint': [maintenance_price],
                     'doors': [doors],
-                    'people': [persons],
-                    'luggage': [luggage],
+                    'persons': [persons],
+                    'lug_boot': [lug_boot],
                     'safety': [safety]
                 })
                 console.log("Input data prepared as DataFrame")
