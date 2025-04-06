@@ -73,7 +73,7 @@ A brief explanation accompanies the rating, highlighting factors like cost, safe
   I trained two additional models—XGBoost and LightGBM—in 2020, optimizing them by tuning the number of iterations and max depth. However, at the time of deployment in 2022, PyScript did not support XGBoost or LightGBM libraries, so I had to drop them.
 
 - **Development Journey**:
-  I built the machine learning models in 2020 and developed the webapp in 2022, initially using Flask for the front-end and back-end. In 2022, I converted it to PyScript, which was still experimental and not yet officially published, making this project a pioneering effort in browser-based Python applications. At that time, XGBoost was a popular model in the data science community, reflecting the trends of the era. I’m now updating this app in 2025 to fix issues and preserve this piece of my data science history, as I don’t want to let this early work go to waste.
+  I built the machine learning models in 2020 and developed the webapp, initially using Flask for the front-end and back-end. In 2022, I converted it to PyScript, which was still experimental and not yet officially published, making this project a pioneering effort in browser-based Python applications. At that time, XGBoost was a popular model in the data science community, reflecting the trends of the era. I’m now updating this app in 2025 to fix issues and preserve this piece of my data science history, as I don’t want to let this early work go to waste.
 
 ## Remarks
 
