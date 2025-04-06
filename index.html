@@ -27,6 +27,7 @@
         h1 { font-size: 2.5rem; font-weight: 700; }
         h2 { font-size: 2.1rem; font-weight: 500; }
         h3 { font-size: 1.8rem; font-weight: 300; }
+        .spinner-border { display: none; }
     </style>
 </head>
 
@@ -48,13 +49,13 @@
     <div style="width: 75%; margin: 20px auto; box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2); border-radius: 4px; text-align: center; padding: 10px;">
         <h1>Buying Used Cars In A Smart Way</h1>
         <br>
-        <p>AI recommendations based on the Auto's physical qualifications.</p>
+        <p>Use AI to evaluate a used car’s quality based on its price, maintenance costs, and physical features. Trained on a dataset of car evaluations, our model rates cars as Unacceptable, Acceptable, Good, or Very Good to help you make smarter buying decisions.</p>
     </div>
 
     <img src="images/main.png" style="margin: 20px auto; width: 100%;" class="img-fluid" alt="Car Purchase AI Main Image" onerror="console.log('Failed to load main.png')">
 
     <div style="width: 75%; margin: 30px auto;" id="trainModel">
-        <h2>① Train your model</h2>
+        <h2>① Train Your Model</h2>
         <br>
         <form>
             <label>Choose Model Type</label>
@@ -75,6 +76,9 @@
                 <small class="form-text text-muted">Value between 0.1 and 0.5</small>
             </div>
             <button class="btn btn-success mt-2" id="trainModelBtn" type="button">Start Training</button>
+            <div class="spinner-border text-success mt-2" role="status" id="trainSpinner">
+                <span class="visually-hidden">Loading...</span>
+            </div>
         </form>
     </div>
 
@@ -101,32 +105,32 @@
                     <div class="form-group">
                         <label for="buying_price">Buying Price</label>
                         <select class="form-control" id="buying_price">
-                            <option value="3">Very High (above 15,000£)</option>
-                            <option value="2">High (around 10,000£)</option>
-                            <option value="1">Medium (around 7,500£)</option>
-                            <option value="0">Low (below 5,000£)</option>
+                            <option value="3">Very High (> £15,000)</option>
+                            <option value="2">High (£10,000 - £15,000)</option>
+                            <option value="1">Medium (£5,000 - £10,000)</option>
+                            <option value="0" selected>Low (< £5,000)</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-lg-4">
                     <div class="form-group">
-                        <label for="maintenance_price">Maintenance Price</label>
+                        <label for="maintenance_price">Annual Maintenance Cost</label>
                         <select class="form-control" id="maintenance_price">
-                            <option value="3">Very High (2,000£+ p.a.)</option>
-                            <option value="2">High (1,500£+ p.a.)</option>
-                            <option value="1">Medium (1,000£+ p.a.)</option>
-                            <option value="0">Low (below 500£ p.a.)</option>
+                            <option value="3">Very High (> £2,000)</option>
+                            <option value="2">High (£1,000 - £2,000)</option>
+                            <option value="1">Medium (£500 - £1,000)</option>
+                            <option value="0" selected>Low (< £500)</option>
                         </select>
                     </div>
                 </div>
                 <div class="col-lg-4">
                     <div class="form-group">
-                        <label for="doors">No. of doors</label>
+                        <label for="doors">No. of Doors</label>
                         <select class="form-control" id="doors">
                             <option value="0">2</option>
                             <option value="1">3</option>
                             <option value="2">4</option>
-                            <option value="3">>=5</option>
+                            <option value="3" selected>5 or more</option>
                         </select>
                     </div>
                 </div>
@@ -138,7 +142,7 @@
                         <select class="form-control" id="persons">
                             <option value="0">2</option>
                             <option value="1">4</option>
-                            <option value="2">greater than 6</option>
+                            <option value="2" selected>More than 6</option>
                         </select>
                     </div>
                 </div>
@@ -146,9 +150,9 @@
                     <div class="form-group">
                         <label for="luggage">Luggage Space</label>
                         <select class="form-control" id="luggage">
-                            <option value="2">High (~450L)</option>
+                            <option value="0">Small (<150L)</option>
                             <option value="1">Medium (~250L)</option>
-                            <option value="0">Low (<150L)</option>
+                            <option value="2" selected>Large (~450L)</option>
                         </select>
                     </div>
                 </div>
@@ -156,9 +160,9 @@
                     <div class="form-group">
                         <label for="safety">Safety</label>
                         <select class="form-control" id="safety">
-                            <option value="0">No Air Bags</option>
-                            <option value="1">Front Air Bags</option>
-                            <option value="2">Front & Back Air Bags</option>
+                            <option value="0">Low (No Air Bags)</option>
+                            <option value="1">Medium (Front Air Bags)</option>
+                            <option value="2" selected>High (Front & Back Air Bags)</option>
                         </select>
                     </div>
                 </div>
@@ -169,6 +173,7 @@
 
     <div style="width: 75%; margin: 20px auto; padding: 20px; background-color: #00bc8c; border-radius: 10px; text-align: center;">
         <p style="color: white; font-size: 1.8rem; font-weight: 600;" id="resultText"></p>
+        <p style="color: white; font-size: 1rem;" id="resultExplanation"></p>
     </div>
 
     <footer style="background-color: #444; text-align: center; color: white; padding: 3px;">
@@ -187,41 +192,9 @@
         from pyodide.ffi import create_proxy
         from js import document, console
         import asyncio
-        import io
         
         trained_model = None
         trained_scaler = None
-        
-        FALLBACK_DATA = """
-        buying,maint,doors,people,luggage,safety,score
-        vhigh,vhigh,2,2,small,low,unacc
-        vhigh,vhigh,2,2,small,med,unacc
-        vhigh,vhigh,2,2,small,high,unacc
-        vhigh,vhigh,2,2,med,low,unacc
-        vhigh,vhigh,2,2,med,med,unacc
-        vhigh,vhigh,2,2,med,high,unacc
-        vhigh,vhigh,2,2,big,low,unacc
-        vhigh,vhigh,2,2,big,med,unacc
-        vhigh,vhigh,2,2,big,high,unacc
-        vhigh,vhigh,2,4,small,low,unacc
-        """
-        
-        def upSampling(data):
-            console.log("Starting upSampling...")
-            from sklearn.utils import resample
-            df_majority = data[data['score'] == 0]
-            samples_in_majority = df_majority.shape[0]
-            
-            df_minority_1 = data[data['score'] == 1]
-            df_minority_2 = data[data['score'] == 2]
-            df_minority_3 = data[data['score'] == 3]
-            
-            df_minority_upsampled_1 = resample(df_minority_1, replace=True, n_samples=samples_in_majority, random_state=42)
-            df_minority_upsampled_2 = resample(df_minority_2, replace=True, n_samples=samples_in_majority, random_state=42)
-            df_minority_upsampled_3 = resample(df_minority_3, replace=True, n_samples=samples_in_majority, random_state=42)
-            
-            console.log("upSampling completed")
-            return pd.concat([df_minority_upsampled_1, df_minority_upsampled_2, df_minority_upsampled_3, df_majority])
         
         async def datasetPreProcessing():
             try:
@@ -230,14 +203,7 @@
                 console.log("Data fetched successfully, reading CSV...")
                 data = pd.read_csv(csv_url_content)
                 console.log("CSV read successfully")
-            except Exception as e:
-                console.log(f"Failed to fetch data: {str(e)}")
-                document.getElementById("headingText").innerText = f"Failed to fetch data: {str(e)}. Using fallback data..."
-                console.log("Falling back to dummy data...")
-                data = pd.read_csv(io.StringIO(FALLBACK_DATA))
-                console.log("Fallback data loaded")
-        
-            try:
+                
                 console.log("Starting preprocessing...")
                 document.getElementById("headingText").innerText = "Pre-Processing the Dataset..."
                 data = data.drop_duplicates()
@@ -255,8 +221,25 @@
                 return result
             except Exception as e:
                 console.log(f"Error in preprocessing: {str(e)}")
-                document.getElementById("headingText").innerText = f"Error in preprocessing: {str(e)}"
+                document.getElementById("headingText").innerText = f"Error loading or processing data: {str(e)}"
                 raise
+        
+        def upSampling(data):
+            console.log("Starting upSampling...")
+            from sklearn.utils import resample
+            df_majority = data[data['score'] == 0]
+            samples_in_majority = df_majority.shape[0]
+            
+            df_minority_1 = data[data['score'] == 1]
+            df_minority_2 = data[data['score'] == 2]
+            df_minority_3 = data[data['score'] == 3]
+            
+            df_minority_upsampled_1 = resample(df_minority_1, replace=True, n_samples=samples_in_majority, random_state=42)
+            df_minority_upsampled_2 = resample(df_minority_2, replace=True, n_samples=samples_in_majority, random_state=42)
+            df_minority_upsampled_3 = resample(df_minority_3, replace=True, n_samples=samples_in_majority, random_state=42)
+            
+            console.log("upSampling completed")
+            return pd.concat([df_minority_upsampled_1, df_minority_upsampled_2, df_minority_upsampled_3, df_majority])
         
         def model_selection():
             console.log("Selecting model...")
@@ -285,13 +268,17 @@
                 return acc_score, clf, f1Score, scaler
             except Exception as e:
                 console.log(f"Error in training: {str(e)}")
-                document.getElementById("headingText").innerText = f"Error in training: {str(e)}"
+                document.getElementById("headingText").innerText = f"Training error: {str(e)}"
                 raise
         
         async def trainModel(e=None):
             global trained_model, trained_scaler
             try:
                 console.log("trainModel function called!")
+                train_btn = document.getElementById("trainModelBtn")
+                train_btn.disabled = True
+                document.getElementById("trainSpinner").style.display = "inline-block"
+                
                 processed_data = await datasetPreProcessing()
                 console.log("Data preprocessing completed")
                 
@@ -300,7 +287,9 @@
                 
                 if test_split > 0.5 or test_split < 0.1:
                     console.log("Test split out of range")
-                    document.getElementById("headingText").innerText = "Please enter test size between 0.1 to 0.5..."
+                    document.getElementById("headingText").innerText = "Please enter a test size between 0.1 and 0.5"
+                    train_btn.disabled = False
+                    document.getElementById("trainSpinner").style.display = "none"
                     return
                 
                 document.getElementById("testSplitContentBox").innerText = test_split
@@ -316,7 +305,7 @@
                 model = model_selection()
                 console.log("Model selected")
                 
-                document.getElementById("headingText").innerText = "Model Training Started..."
+                document.getElementById("headingText").innerText = "Training Model... Please Wait"
                 await asyncio.sleep(0.1)
                 
                 acc_score, trained_model, f1Score, trained_scaler = await classifier(model, X_train, X_test, y_train, y_test)
@@ -331,15 +320,15 @@
                 submit_btn.disabled = False
                 console.log("Submit button enabled")
                 
-                train_btn = document.getElementById("trainModelBtn")
-                train_btn.classList.remove("disabled")
                 train_btn.disabled = False
-                
-                document.getElementById("headingText").innerText = "Model Training Completed."
+                document.getElementById("trainSpinner").style.display = "none"
+                document.getElementById("headingText").innerText = "Model Training Completed Successfully"
                 console.log("Training process fully completed")
             except Exception as e:
                 console.log(f"Error in trainModel: {str(e)}")
                 document.getElementById("headingText").innerText = f"Training failed: {str(e)}"
+                train_btn.disabled = False
+                document.getElementById("trainSpinner").style.display = "none"
         
         async def testModel(e=None):
             try:
@@ -347,8 +336,9 @@
                 if not trained_model:
                     console.log("No trained model available")
                     document.getElementById("resultText").innerText = "Please train the model first!"
+                    document.getElementById("resultExplanation").innerText = ""
                     return
-                    
+                
                 buying_price = int(document.getElementById("buying_price").value)
                 maintenance_price = int(document.getElementById("maintenance_price").value)
                 doors = int(document.getElementById("doors").value)
@@ -356,7 +346,6 @@
                 luggage = int(document.getElementById("luggage").value)
                 safety = int(document.getElementById("safety").value)
                 
-                # Create a DataFrame with the same column names as during training
                 input_data = pd.DataFrame({
                     'buying': [buying_price],
                     'maint': [maintenance_price],
@@ -367,7 +356,6 @@
                 })
                 console.log("Input data prepared as DataFrame")
                 
-                # Scale the input data using the trained scaler
                 arr_scaled = trained_scaler.transform(input_data)
                 console.log("Input data scaled")
                 
@@ -375,17 +363,25 @@
                 console.log(f"Prediction result: {result}")
                 
                 condition = {
-                    0: "The deal is unacceptable",
-                    1: "The deal is acceptable",
-                    2: "The deal is good",
-                    3: "The deal is very good"
+                    0: "Unacceptable",
+                    1: "Acceptable",
+                    2: "Good",
+                    3: "Very Good"
                 }.get(result[0], "Unknown result")
                 
-                document.getElementById("resultText").innerText = f"AI: {condition}"
+                explanation = "This rating reflects the car's price, maintenance cost, and features like safety and capacity."
+                if result[0] >= 2:
+                    explanation += " It scores well due to a balanced cost and desirable attributes."
+                elif result[0] == 0:
+                    explanation += " It may have high costs or limited safety/capacity."
+                
+                document.getElementById("resultText").innerText = f"AI Rating: This car is {condition}"
+                document.getElementById("resultExplanation").innerText = explanation
                 console.log("Prediction displayed")
             except Exception as e:
                 console.log(f"Error in testModel: {str(e)}")
-                document.getElementById("resultText").innerText = f"Error in prediction: {str(e)}"
+                document.getElementById("resultText").innerText = "Prediction Error"
+                document.getElementById("resultExplanation").innerText = f"Something went wrong: {str(e)}"
         
         console.log("Setting up event listeners...")
         
@@ -409,7 +405,5 @@
 
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.8/dist/umd/popper.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.min.js"></script>
-
-<!-- Temporarily disabled for local testing -->
-<!-- <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'92bfe23c8d70afbf',t:'MTc0MzkyNzgxMi4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script> -->
+</body>
 </html>
