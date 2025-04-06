@@ -8,173 +8,6 @@
     <script defer src="https://pyscript.net/releases/2024.4.1/core.js" type="module"></script>
     <title>A Study of Auto Deals with Machine Learning Models</title>
     
-    <py-config>
-        packages = [
-            "pandas",
-            "scikit-learn",
-            "numpy"
-        ]
-    </py-config>
-
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Montserrat&display=swap" rel="stylesheet">
-
-    <style>
-        * { margin: 0; padding: 0; }
-        html { scroll-behavior: smooth; }
-        body { font-family: 'Montserrat', sans-serif; }
-        h1 { font-size: 2.5rem; font-weight: 700; }
-        h2 { font-size: 2.1rem; font-weight: 500; }
-        h3 { font-size: 1.8rem; font-weight: 300; }
-    </style>
-</head>
-
-<body>
-    <nav class="navbar navbar-expand-sm sticky-top navbar-dark bg-primary">
-        <a class="navbar-brand" href="https://elartedm.com/lorentz-portfolio/">Lorentzyeung AI</a>
-        <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarSupportedContent">
-            <span class="navbar-toggler-icon"></span>
-        </button>
-        <div class="collapse navbar-collapse" id="navbarSupportedContent">
-            <ul class="navbar-nav mr-auto">
-                <li class="nav-item"><a class="nav-link" href="#">Top</a></li>
-                <li class="nav-item"><a class="nav-link" href="#trainModel">Train Model</a></li>
-                <li class="nav-item"><a class="nav-link" href="#AI">AI Recommendation</a></li>
-            </ul>
-        </div>
-    </nav>
-
-    <div style="width: 75%; margin: 20px auto; box-shadow: 0 2px 4px 0 rgba(0, 0, 0, 0.2); border-radius: 4px; text-align: center; padding: 10px;">
-        <h1>Buying Used Cars In A Smart Way</h1>
-        <br>
-        <p>AI recommendations based on the Auto's physical qualifications.</p>
-    </div>
-
-    <img src="images/main.png" style="margin: 20px auto; width: 100%;" class="img-fluid" alt="Car Purchase AI Main Image" onerror="console.log('Failed to load main.png')">
-
-    <div style="width: 75%; margin: 30px auto;" id="trainModel">
-        <h2>① Train your model</h2>
-        <br>
-        <form>
-            <label>Choose Model Type</label>
-            <div class="row ml-1">
-                <div class="form-check col-lg-6">
-                    <input class="form-check-input" type="radio" name="modelSelection" id="lr_model" value="lr" checked>
-                    <label class="form-check-label" for="lr_model">Logistic Regression</label>
-                </div>
-                <div class="form-check col-lg-6">
-                    <input class="form-check-input" type="radio" name="modelSelection" id="gb_model" value="gb">
-                    <label class="form-check-label" for="gb_model">Gradient Boosting</label>
-                </div>
-            </div>
-            <br>
-            <div class="form-group mt-2">
-                <label for="test_split">Choose Test Size</label>
-                <input type="number" class="form-control" id="test_split" value="0.25" min="0.1" max="0.5" step="0.05">
-                <small class="form-text text-muted">Value between 0.1 and 0.5</small>
-            </div>
-            <button class="btn btn-success mt-2" id="trainModelBtn" type="button">Start Training</button>
-        </form>
-    </div>
-
-    <div style="width: 75%; margin: 10px auto; background-color: #00bc8c; border-radius: 3px; text-align: center;">
-        <p style="color: white; font-size: 1.3rem; font-weight: 600;" id="headingText"></p>
-    </div>
-
-    <div style="width: 75%; margin: 20px auto; border: 1px solid rgb(211, 211, 211); border-radius: 3px; padding: 10px;">
-        <h2>Training Result Summary</h2>
-        <br>
-        <div style="display: flex;"><p style="flex-grow: 1;">Selected Model: </p><p id="selectedModelContentBox">Not available</p></div>
-        <div style="display: flex;"><p style="flex-grow: 1;">Test Split: </p><p id="testSplitContentBox">Not available</p></div>
-        <div style="display: flex;"><p style="flex-grow: 1;">Accuracy Score: </p><p id="accuracyContentBox">Not available</p></div>
-        <div style="display: flex;"><p style="flex-grow: 1;">Weighted F1 Score: </p><p id="f1ContentBox">Not available</p></div>
-    </div>
-
-    <div id="AI" style="width: 75%; margin: 20px auto;">
-        <h2>② Get AI Recommendation</h2>
-        <br>
-        <h3>Please Enter Your Car Parameters</h3>
-        <form>
-            <div class="row">
-                <div class="col-lg-4">
-                    <div class="form-group">
-                        <label for="buying_price">Buying Price</label>
-                        <select class="form-control" id="buying_price">
-                            <option value="3">Very High (above 15,000£)</option>
-                            <option value="2">High (around 10,000£)</option>
-                            <option value="1">Medium (around 7,500£)</option>
-                            <option value="0">Low (below 5,000£)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="form-group">
-                        <label for="maintenance_price">Maintenance Price</label>
-                        <select class="form-control" id="maintenance_price">
-                            <option value="3">Very High (2,000£+ p.a.)</option>
-                            <option value="2">High (1,500£+ p.a.)</option>
-                            <option value="1">Medium (1,000£+ p.a.)</option>
-                            <option value="0">Low (below 500£ p.a.)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="form-group">
-                        <label for="doors">No. of doors</label>
-                        <select class="form-control" id="doors">
-                            <option value="0">2</option>
-                            <option value="1">3</option>
-                            <option value="2">4</option>
-                            <option value="3">>=5</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-lg-4">
-                    <div class="form-group">
-                        <label for="persons">No. of Persons</label>
-                        <select class="form-control" id="persons">
-                            <option value="0">2</option>
-                            <option value="1">4</option>
-                            <option value="2">greater than 6</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="form-group">
-                        <label for="luggage">Luggage Space</label>
-                        <select class="form-control" id="luggage">
-                            <option value="2">High (~450L)</option>
-                            <option value="1">Medium (~250L)</option>
-                            <option value="0">Low (<150L)</option>
-                        </select>
-                    </div>
-                </div>
-                <div class="col-lg-4">
-                    <div class="form-group">
-                        <label for="safety">Safety</label>
-                        <select class="form-control" id="safety">
-                            <option value="0">No Air Bags</option>
-                            <option value="1">Front Air Bags</option>
-                            <option value="2">Front & Back Air Bags</option>
-                        </select>
-                    </div>
-                </div>
-            </div>
-            <button class="btn btn-success disabled" id="submitBtn" type="button" disabled>Ask AI</button>
-        </form>
-    </div>
-
-    <div style="width: 75%; margin: 20px auto; padding: 20px; background-color: #00bc8c; border-radius: 10px; text-align: center;">
-        <p style="color: white; font-size: 1.8rem; font-weight: 600;" id="resultText"></p>
-    </div>
-
-    <footer style="background-color: #444; text-align: center; color: white; padding: 3px;">
-        <p style="margin: 0;">Data manipulation, model development, front end development by Lorentz Yeung; using PyScript</p>
-    </footer>
-
     <py-script>
         import pandas as pd
         import numpy as np
@@ -182,7 +15,7 @@
         from sklearn.linear_model import LogisticRegression
         from sklearn.ensemble import GradientBoostingClassifier
         from sklearn.metrics import accuracy_score, f1_score
-        from sklearn.preprocessing import StandardScaler  # Added for scaling
+        from sklearn.preprocessing import StandardScaler
         from pyodide.http import open_url
         from pyodide.ffi import create_proxy
         from js import document, console
@@ -190,6 +23,7 @@
         import io
         
         trained_model = None
+        trained_scaler = None
         
         # Fallback dummy data in case the fetch fails
         FALLBACK_DATA = """
@@ -263,7 +97,7 @@
             selectedModel = document.querySelector('input[name="modelSelection"]:checked').value
             if selectedModel == "lr":
                 document.getElementById("selectedModelContentBox").innerText = "Logistic Regression"
-                return LogisticRegression(max_iter=1000)  # Increased max_iter
+                return LogisticRegression(max_iter=1000)
             else:
                 document.getElementById("selectedModelContentBox").innerText = "Gradient Boosting Classifier"
                 return GradientBoostingClassifier(n_estimators=100, max_depth=4)
@@ -271,25 +105,25 @@
         async def classifier(model, X_train, X_test, y_train, y_test):
             try:
                 console.log("Starting model training...")
-                scaler = StandardScaler()  # Added scaler
+                scaler = StandardScaler()
                 X_train_scaled = scaler.fit_transform(X_train)
                 X_test_scaled = scaler.transform(X_test)
                 
                 clf = model
-                clf.fit(X_train_scaled, y_train)  # Train on scaled data
+                clf.fit(X_train_scaled, y_train)
                 console.log("Model fitted, making predictions...")
-                y_pred = clf.predict(X_test_scaled)  # Predict on scaled data
+                y_pred = clf.predict(X_test_scaled)
                 acc_score = accuracy_score(y_test, y_pred)
                 f1Score = f1_score(y_test, y_pred, average='weighted')
                 console.log("Training completed, scores calculated")
-                return acc_score, clf, f1Score, scaler  # Return scaler for later use
+                return acc_score, clf, f1Score, scaler
             except Exception as e:
                 console.log(f"Error in training: {str(e)}")
                 document.getElementById("headingText").innerText = f"Error in training: {str(e)}"
                 raise
         
         async def trainModel(e=None):
-            global trained_model
+            global trained_model, trained_scaler
             try:
                 console.log("trainModel function called!")
                 processed_data = await datasetPreProcessing()
@@ -303,7 +137,7 @@
                     document.getElementById("headingText").innerText = "Please enter test size between 0.1 to 0.5..."
                     return
                 
-                document.getElementById("testSplitContentBox").innerText = test_split
+                document.getElementGlobal.getElementById("testSplitContentBox").innerText = test_split
                 console.log("Test split updated in UI")
                 
                 X = processed_data[['buying', 'maint', 'doors', 'people', 'luggage', 'safety']]
@@ -319,7 +153,7 @@
                 document.getElementById("headingText").innerText = "Model Training Started..."
                 await asyncio.sleep(0.1)  # Allow UI update
                 
-                acc_score, trained_model, f1Score, scaler = await classifier(model, X_train, X_test, y_train, y_test)
+                acc_score, trained_model, f1Score, trained_scaler = await classifier(model, X_train, X_test, y_train, y_test)
                 console.log(f"Training completed: Accuracy={acc_score}, F1={f1Score}")
                 
                 document.getElementById("accuracyContentBox").innerText = f"{round(acc_score*100, 2)}%"
@@ -337,10 +171,6 @@
                 
                 document.getElementById("headingText").innerText = "Model Training Completed."
                 console.log("Training process fully completed")
-                
-                # Store scaler globally for use in testModel
-                global trained_scaler
-                trained_scaler = scaler
             except Exception as e:
                 console.log(f"Error in trainModel: {str(e)}")
                 document.getElementById("headingText").innerText = f"Training failed: {str(e)}"
@@ -348,8 +178,8 @@
         async def testModel(e=None):
             try:
                 console.log("testModel function called!")
-                if not trained_model:
-                    console.log("No trained model available")
+                if not trained_model or not trained_scaler:
+                    console.log("No trained model or scaler available")
                     document.getElementById("resultText").innerText = "Please train the model first!"
                     return
                     
@@ -360,12 +190,19 @@
                 luggage = int(document.getElementById("luggage").value)
                 safety = int(document.getElementById("safety").value)
                 
-                arr = np.array([buying_price, maintenance_price, doors, persons, luggage, safety]).astype('float32')
-                arr = np.expand_dims(arr, axis=0)
-                arr_scaled = trained_scaler.transform(arr)  # Scale input data
+                # Create a DataFrame with feature names matching training data
+                arr = pd.DataFrame({
+                    'buying': [buying_price],
+                    'maint': [maintenance_price],
+                    'doors': [doors],
+                    'people': [persons],
+                    'luggage': [luggage],
+                    'safety': [safety]
+                })
+                arr_scaled = trained_scaler.transform(arr)  # Scale the DataFrame
                 console.log("Input array prepared for prediction")
                 
-                result = trained_model.predict(arr_scaled)  # Predict on scaled data
+                result = trained_model.predict(arr_scaled)
                 console.log(f"Prediction result: {result}")
                 
                 condition = {
